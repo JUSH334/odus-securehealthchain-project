@@ -88,6 +88,12 @@
             font-family: monospace;
             font-size: 12px;
         }
+        .gas-settings {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
@@ -110,6 +116,15 @@
             
             <button onclick="loadContract()">Load Contract</button>
             <div id="loadMessage"></div>
+        </div>
+
+        <div class="section gas-settings">
+            <h2>Gas Settings (Optional)</h2>
+            <label>Gas Price (Gwei):</label>
+            <input type="text" id="gasPrice" placeholder="Leave empty for auto" value="">
+            <label>Gas Limit:</label>
+            <input type="text" id="gasLimit" placeholder="Leave empty for auto" value="">
+            <small>Tip: Try setting Gas Price to 20-50 Gwei if transactions fail</small>
         </div>
 
         <div class="section" id="paymentSection" style="display:none;">
@@ -172,6 +187,26 @@
             msgDiv.style.display = 'block';
         }
 
+        function getGasOptions() {
+            const gasPriceInput = document.getElementById('gasPrice').value;
+            const gasLimitInput = document.getElementById('gasLimit').value;
+            
+            const options = {};
+            
+            if (gasPriceInput && gasPriceInput.trim() !== '') {
+                const gasPriceGwei = parseFloat(gasPriceInput);
+                options.gasPrice = ethers.utils.parseUnits(gasPriceGwei.toString(), 'gwei');
+                log('Using custom gas price: ' + gasPriceGwei + ' Gwei');
+            }
+            
+            if (gasLimitInput && gasLimitInput.trim() !== '') {
+                options.gasLimit = parseInt(gasLimitInput);
+                log('Using custom gas limit: ' + gasLimitInput);
+            }
+            
+            return options;
+        }
+
         async function connectWallet() {
             try {
                 if (typeof window.ethereum === 'undefined') {
@@ -197,6 +232,11 @@
 
                 const balance = await signer.getBalance();
                 const balanceInTT = ethers.utils.formatEther(balance);
+
+                // Get current gas price
+                const gasPrice = await provider.getGasPrice();
+                const gasPriceGwei = ethers.utils.formatUnits(gasPrice, 'gwei');
+                log('Current network gas price: ' + gasPriceGwei + ' Gwei');
 
                 document.getElementById('status').textContent = 'Connected';
                 document.getElementById('account').textContent = account;
@@ -254,21 +294,34 @@
                 const amountWei = ethers.utils.parseEther(amount);
                 log('Processing payment...');
                 
+                // Get gas options
+                const txOptions = {
+                    value: amountWei,
+                    ...getGasOptions()
+                };
+                
                 const tx = await paymentContract.processPayment(
                     paymentId, itemId, itemType, memberID,
-                    { value: amountWei }
+                    txOptions
                 );
                 log('Transaction sent: ' + tx.hash);
+                showMessage('Transaction sent! Waiting for confirmation...', 'info');
                 
                 const receipt = await tx.wait();
                 log('SUCCESS: Payment processed!');
+                log('Block number: ' + receipt.blockNumber);
+                log('Gas used: ' + receipt.gasUsed.toString());
                 
                 document.getElementById('paymentResult').style.display = 'block';
-                document.getElementById('paymentResult').textContent = 'Payment ID: ' + paymentId + '\nTransaction: ' + tx.hash;
+                document.getElementById('paymentResult').textContent = 'Payment ID: ' + paymentId + '\nTransaction: ' + tx.hash + '\nGas Used: ' + receipt.gasUsed.toString();
                 showMessage('Payment processed successfully!', 'success');
             } catch (error) {
                 showMessage('Payment failed: ' + error.message, 'error');
                 log('ERROR: ' + error.message);
+                
+                if (error.message.includes('gas')) {
+                    log('TIP: Try increasing the gas price in the Gas Settings section above');
+                }
             }
         }
 
