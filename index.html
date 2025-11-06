@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interact with Deployed Contracts</title>
+    <title>Interact with Payment Contract</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         body {
@@ -92,7 +92,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Interact with Deployed Contracts</h1>
+        <h1>Payment Contract Interface</h1>
         
         <div class="info">
             <strong>Network:</strong> DIDLab (Chain ID: 252501)<br>
@@ -104,37 +104,12 @@
         <button onclick="connectWallet()" id="connectBtn">Connect MetaMask</button>
 
         <div class="section">
-            <h2>Contract Addresses</h2>
-            <label>PatientRegistry Address:</label>
-            <input type="text" id="patientRegistryAddress" placeholder="0x...">
-            
+            <h2>Contract Address</h2>
             <label>Payment Contract Address:</label>
             <input type="text" id="paymentAddress" placeholder="0x...">
             
-            <button onclick="loadContracts()">Load Contracts</button>
+            <button onclick="loadContract()">Load Contract</button>
             <div id="loadMessage"></div>
-        </div>
-
-        <div class="section" id="patientSection" style="display:none;">
-            <h2>PatientRegistry Functions</h2>
-            
-            <h3>Register Patient</h3>
-            <label>Member ID:</label>
-            <input type="text" id="memberID" placeholder="MEMBER001">
-            <label>Encrypted Data:</label>
-            <textarea id="encryptedData" rows="3" placeholder="Encrypted patient data"></textarea>
-            <button onclick="registerPatient()">Register</button>
-            
-            <h3>Check Registration Status</h3>
-            <button onclick="checkIsRegistered()">Am I Registered?</button>
-            
-            <h3>Get My Member ID</h3>
-            <button onclick="getMyMemberID()">Get My Member ID</button>
-            
-            <h3>Get Total Patients</h3>
-            <button onclick="getTotalPatients()">Get Total</button>
-            
-            <div id="patientResult" class="result" style="display:none;"></div>
         </div>
 
         <div class="section" id="paymentSection" style="display:none;">
@@ -153,8 +128,21 @@
             <input type="text" id="amount" placeholder="0.01">
             <button onclick="processPayment()">Process Payment</button>
             
+            <h3>Check if Item is Paid</h3>
+            <label>Item ID:</label>
+            <input type="text" id="checkItemId" placeholder="ITEM001">
+            <button onclick="checkItemPaid()">Check Item</button>
+            
+            <h3>Get Payment Details</h3>
+            <label>Payment ID:</label>
+            <input type="text" id="getPaymentId" placeholder="PAY001">
+            <button onclick="getPaymentDetails()">Get Payment</button>
+            
             <h3>Get Payment Stats</h3>
             <button onclick="getPaymentStats()">Get Stats</button>
+            
+            <h3>Get My Payments</h3>
+            <button onclick="getMyPayments()">Get My Payments</button>
             
             <div id="paymentResult" class="result" style="display:none;"></div>
         </div>
@@ -166,9 +154,7 @@
 
     <script>
         let provider, signer, account;
-        let patientRegistry, paymentContract;
-
-        const PATIENT_REGISTRY_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"patientAddress","type":"address"},{"indexed":false,"internalType":"string","name":"memberID","type":"string"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"PatientDeactivated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"patientAddress","type":"address"},{"indexed":false,"internalType":"string","name":"memberID","type":"string"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"PatientRegistered","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"patientAddress","type":"address"},{"indexed":false,"internalType":"string","name":"memberID","type":"string"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"PatientUpdated","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"patientAddress","type":"address"},{"indexed":true,"internalType":"address","name":"providerAddress","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"ProviderAssigned","type":"event"},{"inputs":[{"internalType":"address","name":"_patientAddress","type":"address"},{"internalType":"address","name":"_providerAddress","type":"address"}],"name":"assignProvider","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_memberID","type":"string"}],"name":"checkMemberID","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_patientAddress","type":"address"}],"name":"deactivatePatient","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"getAllPatientAddresses","outputs":[{"internalType":"address[]","name":"","type":"address[]"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getMyMemberID","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_patientAddress","type":"address"}],"name":"getPatient","outputs":[{"internalType":"string","name":"memberID","type":"string"},{"internalType":"uint256","name":"registrationTimestamp","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"},{"internalType":"address","name":"assignedProvider","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_index","type":"uint256"}],"name":"getPatientAddressAtIndex","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_memberID","type":"string"}],"name":"getPatientAddressByMemberID","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_patientAddress","type":"address"}],"name":"getPatientData","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getTotalPatients","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"isRegistered","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"isMemberIDRegistered","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"memberIDToAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"","type":"uint256"}],"name":"patientAddresses","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"patients","outputs":[{"internalType":"string","name":"memberID","type":"string"},{"internalType":"uint256","name":"registrationTimestamp","type":"uint256"},{"internalType":"bool","name":"isActive","type":"bool"},{"internalType":"address","name":"assignedProvider","type":"address"},{"internalType":"string","name":"encryptedData","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_memberID","type":"string"},{"internalType":"string","name":"_encryptedData","type":"string"}],"name":"registerPatient","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"totalPatientsRegistered","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"string","name":"_encryptedData","type":"string"}],"name":"updatePatientData","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"nonpayable","type":"function"}];
+        let paymentContract;
 
         const PAYMENT_ABI = [{"inputs":[],"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"FundsWithdrawn","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"string","name":"paymentId","type":"string"},{"indexed":false,"internalType":"string","name":"itemId","type":"string"},{"indexed":true,"internalType":"address","name":"payer","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"PaymentProcessed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":false,"internalType":"uint256","name":"amount","type":"uint256"}],"name":"PaymentReceived","type":"event"},{"stateMutability":"payable","type":"receive"},{"inputs":[{"internalType":"string","name":"_paymentId","type":"string"}],"name":"getPayment","outputs":[{"internalType":"string","name":"itemId","type":"string"},{"internalType":"string","name":"itemType","type":"string"},{"internalType":"address","name":"payer","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"bool","name":"completed","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"getStats","outputs":[{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_user","type":"address"}],"name":"getUserPayments","outputs":[{"internalType":"string[]","name":"","type":"string[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_itemId","type":"string"}],"name":"isItemPaid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"itemPaid","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"","type":"string"}],"name":"payments","outputs":[{"internalType":"string","name":"itemId","type":"string"},{"internalType":"string","name":"itemType","type":"string"},{"internalType":"address","name":"payer","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"bool","name":"completed","type":"bool"},{"internalType":"string","name":"memberID","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"string","name":"_paymentId","type":"string"},{"internalType":"string","name":"_itemId","type":"string"},{"internalType":"string","name":"_itemType","type":"string"},{"internalType":"string","name":"_memberID","type":"string"}],"name":"processPayment","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"totalAmountProcessed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalPaymentsProcessed","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"}],"name":"userPayments","outputs":[{"internalType":"string","name":"","type":"string"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"_amount","type":"uint256"}],"name":"withdraw","outputs":[],"stateMutability":"nonpayable","type":"function"}];
 
@@ -226,8 +212,7 @@
             }
         }
 
-        function loadContracts() {
-            const prAddress = document.getElementById('patientRegistryAddress').value.trim();
+        function loadContract() {
             const payAddress = document.getElementById('paymentAddress').value.trim();
 
             if (!provider) {
@@ -236,100 +221,19 @@
             }
 
             try {
-                if (prAddress && ethers.utils.isAddress(prAddress)) {
-                    patientRegistry = new ethers.Contract(prAddress, PATIENT_REGISTRY_ABI, signer);
-                    document.getElementById('patientSection').style.display = 'block';
-                    log('Loaded PatientRegistry at: ' + prAddress);
-                }
-
                 if (payAddress && ethers.utils.isAddress(payAddress)) {
                     paymentContract = new ethers.Contract(payAddress, PAYMENT_ABI, signer);
                     document.getElementById('paymentSection').style.display = 'block';
                     log('Loaded Payment contract at: ' + payAddress);
+                    
+                    document.getElementById('loadMessage').className = 'success';
+                    document.getElementById('loadMessage').textContent = 'Contract loaded successfully!';
+                } else {
+                    showMessage('Invalid contract address!', 'error');
                 }
 
-                document.getElementById('loadMessage').className = 'success';
-                document.getElementById('loadMessage').textContent = 'Contracts loaded successfully!';
-
             } catch (error) {
-                showMessage('Error loading contracts: ' + error.message, 'error');
-                log('ERROR: ' + error.message);
-            }
-        }
-
-        async function registerPatient() {
-            const memberID = document.getElementById('memberID').value;
-            const encryptedData = document.getElementById('encryptedData').value;
-
-            if (!patientRegistry) {
-                showMessage('Please load PatientRegistry contract first!', 'error');
-                return;
-            }
-
-            try {
-                log('Registering patient...');
-                const tx = await patientRegistry.registerPatient(memberID, encryptedData);
-                log('Transaction sent: ' + tx.hash);
-                
-                const receipt = await tx.wait();
-                log('SUCCESS: Patient registered!');
-                
-                document.getElementById('patientResult').style.display = 'block';
-                document.getElementById('patientResult').textContent = 'Transaction: ' + tx.hash;
-                showMessage('Patient registered successfully!', 'success');
-            } catch (error) {
-                showMessage('Registration failed: ' + error.message, 'error');
-                log('ERROR: ' + error.message);
-            }
-        }
-
-        async function checkIsRegistered() {
-            if (!patientRegistry) {
-                showMessage('Please load PatientRegistry contract first!', 'error');
-                return;
-            }
-
-            try {
-                const isReg = await patientRegistry.isRegistered();
-                document.getElementById('patientResult').style.display = 'block';
-                document.getElementById('patientResult').textContent = 'Registered: ' + isReg;
-                log('Registration status: ' + isReg);
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-                log('ERROR: ' + error.message);
-            }
-        }
-
-        async function getMyMemberID() {
-            if (!patientRegistry) {
-                showMessage('Please load PatientRegistry contract first!', 'error');
-                return;
-            }
-
-            try {
-                const memberID = await patientRegistry.getMyMemberID();
-                document.getElementById('patientResult').style.display = 'block';
-                document.getElementById('patientResult').textContent = 'Your Member ID: ' + memberID;
-                log('Member ID: ' + memberID);
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
-                log('ERROR: ' + error.message);
-            }
-        }
-
-        async function getTotalPatients() {
-            if (!patientRegistry) {
-                showMessage('Please load PatientRegistry contract first!', 'error');
-                return;
-            }
-
-            try {
-                const total = await patientRegistry.getTotalPatients();
-                document.getElementById('patientResult').style.display = 'block';
-                document.getElementById('patientResult').textContent = 'Total Patients: ' + total.toString();
-                log('Total patients: ' + total.toString());
-            } catch (error) {
-                showMessage('Error: ' + error.message, 'error');
+                showMessage('Error loading contract: ' + error.message, 'error');
                 log('ERROR: ' + error.message);
             }
         }
@@ -368,6 +272,52 @@
             }
         }
 
+        async function checkItemPaid() {
+            const itemId = document.getElementById('checkItemId').value;
+
+            if (!paymentContract) {
+                showMessage('Please load Payment contract first!', 'error');
+                return;
+            }
+
+            try {
+                const isPaid = await paymentContract.isItemPaid(itemId);
+                document.getElementById('paymentResult').style.display = 'block';
+                document.getElementById('paymentResult').textContent = 'Item ' + itemId + ' is paid: ' + isPaid;
+                log('Item paid status: ' + isPaid);
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                log('ERROR: ' + error.message);
+            }
+        }
+
+        async function getPaymentDetails() {
+            const paymentId = document.getElementById('getPaymentId').value;
+
+            if (!paymentContract) {
+                showMessage('Please load Payment contract first!', 'error');
+                return;
+            }
+
+            try {
+                const payment = await paymentContract.getPayment(paymentId);
+                const amount = ethers.utils.formatEther(payment.amount);
+                const info = 'Item ID: ' + payment.itemId + '\n' +
+                            'Item Type: ' + payment.itemType + '\n' +
+                            'Payer: ' + payment.payer + '\n' +
+                            'Amount: ' + amount + ' TT\n' +
+                            'Timestamp: ' + new Date(payment.timestamp * 1000).toLocaleString() + '\n' +
+                            'Completed: ' + payment.completed;
+                
+                document.getElementById('paymentResult').style.display = 'block';
+                document.getElementById('paymentResult').textContent = info;
+                log('Payment details retrieved');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                log('ERROR: ' + error.message);
+            }
+        }
+
         async function getPaymentStats() {
             if (!paymentContract) {
                 showMessage('Please load Payment contract first!', 'error');
@@ -392,9 +342,32 @@
             }
         }
 
+        async function getMyPayments() {
+            if (!paymentContract) {
+                showMessage('Please load Payment contract first!', 'error');
+                return;
+            }
+
+            try {
+                const payments = await paymentContract.getUserPayments(account);
+                
+                document.getElementById('paymentResult').style.display = 'block';
+                if (payments.length === 0) {
+                    document.getElementById('paymentResult').textContent = 'No payments found for your address';
+                } else {
+                    document.getElementById('paymentResult').textContent = 
+                        'Your Payments:\n' + payments.join('\n');
+                }
+                log('Retrieved ' + payments.length + ' payments');
+            } catch (error) {
+                showMessage('Error: ' + error.message, 'error');
+                log('ERROR: ' + error.message);
+            }
+        }
+
         window.addEventListener('load', () => {
-            log('Ready to interact with deployed contracts');
-            log('Enter your contract addresses and click Load Contracts');
+            log('Ready to interact with Payment contract');
+            log('Enter your contract address and click Load Contract');
         });
     </script>
 </body>
