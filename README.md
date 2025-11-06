@@ -4,6 +4,7 @@ ODUS DEPLOYMENT: https://jush334.github.io/odus-demo/
 # Payment Smart Contract - DIDLab Network
 
 Decentralized payment processing system on DIDLab QBFT blockchain for tracking healthcare payments with unique transaction IDs.
+Note: W.I.P deployment/build
 
 ---
 
