@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deploy Contracts via MetaMask</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover { background: #5568d3; }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .address {
+            font-family: monospace;
+            background: #eee;
+            padding: 5px;
+            border-radius: 3px;
+            word-break: break-all;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Deploy Contracts via MetaMask</h1>
+        
+        <div class="info">
+            <strong>Network:</strong> DIDLab (Chain ID: 252501)<br>
+            <strong>Status:</strong> <span id="status">Not connected</span><br>
+            <strong>Account:</strong> <span id="account">-</span><br>
+            <strong>Balance:</strong> <span id="balance">-</span>
+        </div>
+
+        <button onclick="connectWallet()" id="connectBtn">Connect MetaMask</button>
+        <button onclick="deployPatientRegistry()" id="deployPRBtn" disabled>Deploy PatientRegistry</button>
+        <button onclick="deployPayment()" id="deployPaymentBtn" disabled>Deploy Payment</button>
+        <button onclick="downloadDeployment()" id="downloadBtn" disabled>Download deployment.json</button>
+
+        <div id="message"></div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        let provider, signer, account;
+        let deploymentData = {
+            network: "didlab",
+            chainId: 252501,
+            contracts: {}
+        };
+
+        function log(msg) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += msg + '<br>';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        async function connectWallet() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    showMessage('MetaMask not installed!', 'error');
+                    return;
+                }
+
+                log('Requesting accounts...');
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+                account = accounts[0];
+
+                const network = await provider.getNetwork();
+                log('Connected to network: ' + network.chainId);
+
+                if (network.chainId !== 252501) {
+                    showMessage('Please switch to DIDLab network (Chain ID: 252501)', 'error');
+                    log('Wrong network! Need Chain ID 252501');
+                    return;
+                }
+
+                const balance = await provider.getBalance(account);
+                const balanceInTT = ethers.utils.formatEther(balance);
+
+                document.getElementById('status').textContent = 'Connected';
+                document.getElementById('account').textContent = account;
+                document.getElementById('balance').textContent = balanceInTT + ' TT';
+
+                document.getElementById('connectBtn').disabled = true;
+                document.getElementById('deployPRBtn').disabled = false;
+                document.getElementById('deployPaymentBtn').disabled = false;
+
+                showMessage('Connected successfully!', 'success');
+                log('Connected: ' + account);
+                log('Balance: ' + balanceInTT + ' TT');
+
+                deploymentData.deployer = account;
+
+            } catch (error) {
+                showMessage('Connection failed: ' + error.message, 'error');
+                log('ERROR: ' + error.message);
+            }
+        }
+
+        async function deployPatientRegistry() {
+            const btn = document.getElementById('deployPRBtn');
+            btn.disabled = true;
+            btn.textContent = 'Deploying...';
+
+            try {
+                log('\n=== Deploying PatientRegistry ===');
+                
+                // Paste the compiled bytecode here
+                // You need to compile the contract first and get the bytecode
+                showMessage('You need to add the contract bytecode first. Use Remix or Hardhat to compile.', 'error');
+                log('ERROR: Contract bytecode not included in this demo');
+                log('To deploy: 1) Compile contract in Remix, 2) Get bytecode, 3) Add to this file');
+                
+                btn.textContent = 'Deploy PatientRegistry';
+                btn.disabled = false;
+
+            } catch (error) {
+                showMessage('Deployment failed: ' + error.message, 'error');
+                log('ERROR: ' + error.message);
+                btn.textContent = 'Deploy PatientRegistry';
+                btn.disabled = false;
+            }
+        }
+
+        async function deployPayment() {
+            showMessage('Use the same process as PatientRegistry', 'error');
+        }
+
+        function showMessage(msg, type) {
+            const msgDiv = document.getElementById('message');
+            msgDiv.className = type;
+            msgDiv.textContent = msg;
+            msgDiv.style.display = 'block';
+        }
+
+        function downloadDeployment() {
+            const dataStr = JSON.stringify(deploymentData, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'didlab-deployment.json';
+            link.click();
+        }
+    </script>
+</body>
+</html>

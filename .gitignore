@@ -1,0 +1,63 @@
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Hardhat files
+cache/
+artifacts/
+typechain/
+typechain-types/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build outputs
+dist/
+build/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Private keys (extra safety)
+*.key
+*.pem
+private-keys.txt
+
+# MongoDB
+*.db
+data/
+
+# Hardhat network files
+.openzeppelin/
+deployments/localhost/
+deployments/hardhat/
+
+# Keep DIDLab deployment records but ignore others
+!deployments/didlab-deployment.json

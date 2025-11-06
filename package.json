@@ -1,0 +1,37 @@
+{
+  "name": "securehealthchain",
+  "version": "1.0.0",
+  "description": "Decentralized Healthcare Payment Platform on DIDLab Blockchain",
+  "main": "backend/server.js",
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "check-balance": "npx hardhat run scripts/check-balance.js --network didlab",
+    "deploy:didlab": "npx hardhat run scripts/deploy-didlab.js --network didlab",
+    "deploy:local": "npx hardhat run scripts/deploy-didlab.js --network localhost",
+    "node": "npx hardhat node",
+    "test": "npx hardhat test",
+    "server": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "keywords": [
+    "blockchain",
+    "healthcare",
+    "didlab",
+    "ethereum",
+    "smart-contracts"
+  ],
+  "author": "Team Odus",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "^6.9.0",
+    "express": "^4.18.2",
+    "mongoose": "^8.0.0",
+    "cors": "^2.8.5",
+    "nodemailer": "^6.9.7"
+  }
+}

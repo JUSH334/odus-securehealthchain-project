@@ -1,0 +1,16 @@
+{
+  "network": "didlab",
+  "chainId": 252501,
+  "deployer": "0xFB3C61Dcc2dF6800C62E7ba2bcA5e9dd7d42f2F7",
+  "deploymentTime": "2025-11-06T07:13:56.018Z",
+  "contracts": {
+    "PatientRegistry": {
+      "address": "0x01A2eA8137793734c12033b214c884cB5d63C0Ca",
+      "transactionHash": "0xd40c6a43f66447940cd70489509fa4b7f32229528fbf67143e5218d7a51ad426"
+    },
+    "Payment": {
+      "address": "0x57677BA3d51369c8356d38cdc120f111813e1224",
+      "transactionHash": "0x4f66b1b8c5092bc0c8037cbff15c0203c60c41373d7f79b87b5b6e1187ef1813"
+    }
+  }
+}
