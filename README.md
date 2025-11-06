@@ -186,20 +186,20 @@ git checkout [INSERT COMMIT HASH]
 
 ## Additional Information
 
-### File Structure
+### Main Files of Structure
 ```
 payment-hardhat/
 ├── contracts/
 │   └── Payment.sol           # Main contract (Solidity 0.8.19)
 ├── scripts/
 │   └── deploy.js             # Deployment script
-├── artifacts/                # Compiled contracts (generated)
+├── artifacts/                # Compiled contracts
 ├── hardhat.config.js         # Hardhat configuration
 ├── package.json              # Dependencies
 ├── .env.example              # Environment template
 ├── .gitignore                # Git ignore rules
-├── Payment-ABI.json          # Contract ABI (generated)
-├── payment-deployment.json   # Deployment info (generated)
+├── Payment-ABI.json          # Contract ABI 
+├── payment-deployment.json   # Deployment info 
 ├── interact-payment-fixed.html  # Web interface
 └── README.md                 # This file
 ```
