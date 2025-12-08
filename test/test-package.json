@@ -1,0 +1,27 @@
+{
+  "name": "securehealth-chain-tests",
+  "version": "1.0.0",
+  "description": "Comprehensive test suite for SecureHealth Chain smart contracts",
+  "scripts": {
+    "test": "hardhat test",
+    "test:patient-registry": "hardhat test test/PatientRegistry.test.js",
+    "test:payment": "hardhat test test/Payment.test.js",
+    "test:medical-records": "hardhat test test/MedicalRecords.test.js",
+    "test:integration": "hardhat test test/Integration.test.js",
+    "test:all": "hardhat test test/*.test.js",
+    "test:coverage": "hardhat coverage",
+    "test:gas": "REPORT_GAS=true hardhat test",
+    "test:verbose": "hardhat test --verbose",
+    "compile": "hardhat compile",
+    "clean": "hardhat clean"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.19.0",
+    "chai": "^4.3.10",
+    "ethers": "^6.9.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
