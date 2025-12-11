@@ -2,7 +2,7 @@ ODUS DEPLOYMENT: https://jush334.github.io/odus-securehealthchain-project/
 
 ODUS DEMO VIDEO: https://www.youtube.com/watch?v=qUU8QicOMIo
 
-## Note: If adblocker is enabled, disable before clicking the link as it will not allow metamask to properly connect. 
+## Note: If adblocker is enabled, disable before clicking the deployment link as it will not allow metamask to properly connect. 
 
 Presentation Link: https://docs.google.com/presentation/d/1CA9w-ueT2w25Pn8oIRZk47Y8akwGEdNClpVnQo2FtSQ/edit?usp=sharing
 
